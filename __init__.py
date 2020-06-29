@@ -15,14 +15,13 @@ def create_app(test_config=None):
         app.config.from_pyfile(test_config)
 
     # ensure instance folder exists
-
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
     
 
-    def get_json(url):
+    def return_json_from_url(url):
         try:
             res = requests.get(url)
             return res.json()
@@ -30,61 +29,51 @@ def create_app(test_config=None):
             return False
     
     def return_user_submissions(user_id):
-        url = 'https://kenkoooo.com/atcoder/atcoder-api/results?user='
-        url = url + user_id
-        return get_json(url)
+        return return_json_from_url('https://kenkoooo.com/atcoder/atcoder-api/results?user=' + user_id)
 
     def return_solved_dict(user_id):
         user_submissions = return_user_submissions(user_id)
         solved_dict = {} 
         for sub in user_submissions:
             if sub['result'] == 'AC':
-                solved_dict[ sub['problem_id'] ] = sub['result']
-            elif sub['problem_id'] not in solved_dict:
-                solved_dict[ sub['problem_id'] ] = sub['result']
+                solved_dict[sub['problem_id']] = sub['result']
+            else:
+                solved_dict[sub['problem_id']] = sub['result']
         return solved_dict
-
 
     def return_local_json(file_name):
         SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
-        json_url = os.path.join(SITE_ROOT, 'static/data', file_name)
-        return json.load(open(json_url))
+        json_path = os.path.join(SITE_ROOT, 'static/data', file_name)
+        return json.load(open(json_path))
         
-    def get_problem_json(problem_id , contest_id , rating):
-        problem = {}
-        problem['id'] = problem_id
-        problem['contest_id'] = contest_id
-        problem['rating'] = rating
-        problem['url'] = os.path.join('https://atcoder.jp' , 'contests' , contest_id , 'tasks' , problem_id)
+    def return_problem_json(problem_id , contest_id , rating):
+        problem = {
+            'id': problem_id,
+            'contest_id': contest_id,
+            'rating': rating,
+            'url': os.path.join('https://atcoder.jp' , 'contests' , contest_id , 'tasks' , problem_id),
+            }
         return problem 
-
+    
     @app.route('/user/<user_id>/')
     @app.route('/user/<user_id>/lower=<int:lb>')
     @app.route('/user/<user_id>/upper=<int:ub>')
     @app.route('/user/<user_id>/lower=<int:lb>&&upper=<int:ub>')
-    def func(user_id, lb = 0 , ub = 8000):
+    def get_suggestions(user_id, lb = -6000, ub = 6000):
         solved_dict  = return_solved_dict(user_id)
         problem_list = return_local_json('merged-problems.json')
         difficulty_dict = return_local_json('problem-models.json')
         unsolved_list = []
         for problem in problem_list:
-            if problem['id'] in solved_dict and problem['id'] != 'AC':
-                #print(problem['id'] , file=sys.stderr)
-                continue
-            else:
-                if problem['id'] not in difficulty_dict or 'difficulty' not in difficulty_dict[problem['id']] or difficulty_dict[problem['id']]['difficulty'] is None:
-                    continue
-                else:
+            if problem['id'] not in solved_dict:
+               if problem['id'] in difficulty_dict and 'difficulty' in difficulty_dict[problem['id']] and difficulty_dict[problem['id']]['difficulty'] is not None:
                     rating = float(difficulty_dict[problem['id']]['difficulty'])
-                if rating >= lb and rating <= ub:
-                    suitable_problem = get_problem_json(problem['id'] , problem['contest_id'] , int(rating))
-                    unsolved_list.append(suitable_problem)
-
+                    if rating >= lb and rating <= ub:
+                        suitable_problem = return_problem_json(problem['id'] , problem['contest_id'] , int(rating))
+                        unsolved_list.append(suitable_problem)
         random.shuffle(unsolved_list)
         result_count = min(len(unsolved_list) , 10)
-        unsolved_list = unsolved_list[0:result_count - 1]
-#        return jsonify(solved_dict)
-
+        unsolved_list = unsolved_list[:result_count]
         
         return render_template_string('''
             <table>
