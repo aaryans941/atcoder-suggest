@@ -128,7 +128,7 @@ def create_app(test_config=None):
 
     @app.route('/vc/<user_id_list>/')
     @app.route('/vc/<user_id_list>/<filter_string>')
-    def get_virtual_contests(user_id_list, filter_string):
+    def get_virtual_contests(user_id_list, filter_string = ""):
         contest_participation_dict = return_contest_participation_list(user_id_list)
         contest_list = return_all_contest_list()
         unsolved_contest_list = [] 
