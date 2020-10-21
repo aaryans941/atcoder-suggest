@@ -40,10 +40,10 @@ def create_app(test_config=None):
         for user_id in user_id_list.split(';'):
             user_submissions = return_user_submissions(user_id)
             for sub in user_submissions:
-                if sub['result'] == 'AC':
-                    solved_dict[sub['problem_id']] = sub['result']
-                else:
-                    solved_dict[sub['problem_id']] = sub['result']
+                #if sub['result'] == 'AC':
+                solved_dict[sub['problem_id']] = sub['result']
+                #else:
+                #    solved_dict[sub['problem_id']] = sub['result']
         return solved_dict
 
     def return_contest_participation_list(user_id_list):
@@ -51,10 +51,10 @@ def create_app(test_config=None):
         for user_id in user_id_list.split(';'):
             user_submissions = return_user_submissions(user_id)
             for sub in user_submissions:
-                if sub['result'] == 'AC':
-                    contest_participation_dict[sub['contest_id']] = sub['result']
-                else:
-                    contest_participation_dict[sub['contest_id']] = sub['result']
+                #if sub['result'] == 'AC':
+                contest_participation_dict[sub['contest_id']] = sub['result']
+                #else:
+                #    contest_participation_dict[sub['contest_id']] = sub['result']
         return contest_participation_dict
     
     def return_local_json(file_name):
@@ -73,7 +73,7 @@ def create_app(test_config=None):
         problem = {
             'id': problem_id,
             'contest_id': contest_id,
-            'return_contest_participation_listing': rating,
+            'rating': rating,
             'url': '/'.join(['https://atcoder.jp' , 'contests' , contest_id , 'tasks' , problem_id]),
             }
         return problem 
