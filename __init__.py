@@ -1,9 +1,10 @@
 import os , sys, requests, random, time
 from flask import Flask, render_template_string, url_for, jsonify, json
 
+
 def create_app(test_config=None):
+    app = Flask(__name__)
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
             SECRET_KEY='dev',
     )
@@ -165,3 +166,7 @@ def create_app(test_config=None):
 
     return app
 
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run()
